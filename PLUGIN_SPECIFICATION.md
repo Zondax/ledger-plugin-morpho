@@ -20,6 +20,7 @@ Smart contracts covered by the plugin shall be described here:
 | Ethereum | AaveV3OptimizerMigrationBundler | 0x16f38d2e764e7bebf625a8e995b34968226d2f9c |
 | Ethereum | CompoundV2MigrationBundler      | 0x26bf52a84360ad3d01d7cdc28fc2ddc04d8c8647 |
 | Ethereum | CompoundV3MigrationBundler      | 0x3a0e2e9fb9c95fbc843daf166276c90b6c479558 |
+| Ethereum | CompoundV3MigrationBundlerV2    | 0x1f8076e2eb6f10b12e6886f30d4909a91969f7da |
 | Ethereum | ChainAgnosticBundlerV2          | 0x23055618898e202386e6c13955a58D3C68200BFB |
 | Ethereum | CompoundV2MigrationBundlerV2    | 0x123f3167a416cA19365dE03a65e0AF3532af7223 |
 | Ethereum | AaveV3MigrationBundlerV2        | 0xcAe2929baBc60Be34818EaA5F40bF69265677108 |
