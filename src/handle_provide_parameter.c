@@ -33,8 +33,8 @@ static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *contex
                 return;
             }
 
-            if (!U2BE_from_parameter(msg->parameter, &context->n_calls) || context->n_calls > 3 ||
-                context->n_calls == 0) {
+            if (!U2BE_from_parameter(msg->parameter, &context->n_calls) ||
+                context->n_calls > CALL_LENGTH || context->n_calls == 0) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
             }
             context->next_param = OFFSETS;
