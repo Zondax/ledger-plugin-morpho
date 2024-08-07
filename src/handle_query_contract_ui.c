@@ -1,5 +1,6 @@
 #include "plugin.h"
 
+#define ELLIPSIS_LENGTH 3
 /**
  * @brief Format 32 bytes array to add ellipsis in the middle
  *
@@ -17,7 +18,8 @@ static bool array_to_hexstr(char *dst,
                             uint16_t count,
                             bool addEllipsis) {
     memset(dst, 0, dstLen);
-    if (dstLen < (count * 2 + 1)) {
+    size_t requiredLen = count * 2 + 1 + (addEllipsis ? ELLIPSIS_LENGTH : 0);
+    if (dstLen < requiredLen) {
         return false;
     }
 
@@ -31,9 +33,9 @@ static bool array_to_hexstr(char *dst,
 
     if (addEllipsis) {
         // Add "..." in the middle
-        *dst++ = '.';
-        *dst++ = '.';
-        *dst++ = '.';
+        for (int i = 0; i < ELLIPSIS_LENGTH; i++) {
+            *dst++ = '.';
+        }
     }
 
     for (int i = halfCount; i < count; i++, src++) {
