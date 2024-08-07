@@ -32,6 +32,8 @@
 #define TO_ENUM(selector_name, selector_id)  selector_name,
 #define TO_VALUE(selector_name, selector_id) selector_id,
 
+#define OFFSET_LENGTH 3
+
 // This enum will be automatically expanded to hold all selector names.
 // The value SELECTOR_COUNT can be used to get the number of defined selectors
 // Do not modify !
@@ -65,7 +67,7 @@ typedef struct context_s {
     uint16_t call_len[3];
     bytes32_t call[3];
     uint8_t id;
-    uint16_t offsets[3];
+    uint16_t offsets[OFFSET_LENGTH];
     uint16_t offsets_start;
 
     // For both parsing and display.
