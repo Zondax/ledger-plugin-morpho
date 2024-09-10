@@ -33,13 +33,17 @@ static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *contex
                 return;
             }
 
-            if (!U2BE_from_parameter(msg->parameter, &context->n_calls) || context->n_calls > 3 ||
-                context->n_calls == 0) {
+            if (!U2BE_from_parameter(msg->parameter, &context->n_calls) ||
+                context->n_calls > CALL_LENGTH || context->n_calls == 0) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
             }
             context->next_param = OFFSETS;
             break;
         case OFFSETS:
+            if (context->id >= OFFSET_LENGTH) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             if (!U2BE_from_parameter(msg->parameter, &tmp_offset)) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
                 return;
@@ -61,6 +65,10 @@ static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *contex
             }
             break;
         case CALL_LEN:
+            if (context->id >= OFFSET_LENGTH) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             if (!U2BE_from_parameter(msg->parameter, &context->call_len[context->id])) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
                 return;
@@ -68,6 +76,10 @@ static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *contex
             context->next_param = CALL;
             break;
         case CALL:
+            if (context->id >= OFFSET_LENGTH) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             // Name has less then 32
             if (context->call_len[context->id] <= PARAMETER_LENGTH) {
                 copy_text(context->call[context->id].value,
@@ -120,13 +132,21 @@ static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *contex
             }
             break;
         case CALL_1:  // second last container
+            if (context->id >= OFFSET_LENGTH) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             copy_text(context->call[context->id].value + HALF_PARAMETER_LENGTH,
                       sizeof(context->call[context->id].value) - HALF_PARAMETER_LENGTH,
                       HALF_PARAMETER_LENGTH - bytes_missing,
                       msg->parameter + HALF_PARAMETER_LENGTH + bytes_missing);
             context->next_param = CALL_2;
             break;
-        case CALL_2:                                       // last container
+        case CALL_2:  // last container
+            if (context->id >= OFFSET_LENGTH) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             if (bytes_missing <= HALF_PARAMETER_LENGTH) {  // copy missing bytes
                 copy_text(context->call[context->id].value + HALF_PARAMETER_LENGTH +
                               (HALF_PARAMETER_LENGTH - bytes_missing),
