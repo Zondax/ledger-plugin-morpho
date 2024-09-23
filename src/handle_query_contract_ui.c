@@ -83,10 +83,17 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
     memset(msg->msg, 0, msg->msgLength);
 
     if (context->selectorIndex == MULTICALL) {
-        if (msg->screenIndex < context->n_calls) {
+        if (msg->screenIndex == 0) {
+            strlcpy(msg->title, "Warning!", msg->titleLength);
+            strlcpy(msg->msg,
+                    "Calls are in partial hex view.\nProceed cautiously.",
+                    msg->msgLength);
+            msg->result = ETH_PLUGIN_RESULT_OK;
+            return;
+        } else if (msg->screenIndex < context->n_calls + 1) {
             ret = set_bytes_ui(msg,
-                               &context->call[msg->screenIndex],
-                               context->call_len[msg->screenIndex],
+                               &context->call[msg->screenIndex - 1],
+                               context->call_len[msg->screenIndex - 1],
                                "Call");
         } else {
             PRINTF("Received an invalid screenIndex\n");
