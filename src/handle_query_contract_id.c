@@ -10,8 +10,20 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
     strlcpy(msg->name, APPNAME, msg->nameLength);
 
     switch (context->selectorIndex) {
-        case MULTICALL:
-            strlcpy(msg->version, "Multicall", msg->versionLength);
+        case DEPOSIT:
+            strlcpy(msg->version, "Deposit", msg->versionLength);
+            break;
+        case MINT:
+            strlcpy(msg->version, "Mint", msg->versionLength);
+            break;
+        case REDEEM:
+            strlcpy(msg->version, "Redeem", msg->versionLength);
+            break;
+        case WITHDRAW:
+            strlcpy(msg->version, "Withdraw", msg->versionLength);
+            break;
+        case APPROVE:
+            strlcpy(msg->version, "Approve", msg->versionLength);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
