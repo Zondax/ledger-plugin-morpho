@@ -28,14 +28,7 @@ static bool set_address_ui(ethQueryContractUI_t *msg, address_t *value) {
         chainid);
 }
 
-/**
- * @brief UI for depositIntoStrategy selector
- *
- * @param msg: message containing the parameter
- * @param ctx: context with provide_parameter data
- * @param screenIndex: index of the screen to display
- *
- */
+
 static bool handle_deposit(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
@@ -53,6 +46,29 @@ static bool handle_deposit(ethQueryContractUI_t *msg, context_t *ctx, uint8_t sc
     }
 }
 
+static bool handle_approve(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Shares", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.approve.shares.value,
+                                      sizeof(ctx->tx.approve.shares.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 1:
+            strlcpy(msg->title, "Spender", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.approve.spender);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
+/**
+ * @brief Fucntion for ui showing. Calls specific function for each method
+ *
+ * @param msg: message context
+ *
+ */
 void handle_query_contract_ui(ethQueryContractUI_t *msg) {
     context_t *context = (context_t *) msg->pluginContext;
     bool ret = false;
@@ -67,6 +83,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
     switch (context->selectorIndex) {
         case DEPOSIT:
             ret = handle_deposit(msg, context, msg->screenIndex);
+            break;
+        case APPROVE:
+            ret = handle_approve(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

@@ -51,6 +51,8 @@ typedef enum {
     NONE,
     AMOUNT,
     RECEIVER,
+    SPENDER,
+    SHARES
 } parameter;
 
 typedef struct {

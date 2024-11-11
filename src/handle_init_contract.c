@@ -42,6 +42,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case DEPOSIT:
             context->next_param = AMOUNT;
             break;
+        case APPROVE:
+            context->next_param = SPENDER;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;
