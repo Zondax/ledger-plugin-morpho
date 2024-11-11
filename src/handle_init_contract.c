@@ -39,10 +39,21 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
 
     // Set `next_param` to be the first field we expect to parse.
     switch (context->selectorIndex) {
-        case MULTICALL:
-            context->next_param = OFFSET;
+        case DEPOSIT:
+            context->next_param = AMOUNT;
             break;
-        // Keep this
+        case APPROVE:
+            context->next_param = SPENDER;
+            break;
+        case REDEEM:
+            context->next_param = SHARES;
+            break;
+        case WITHDRAW:
+            context->next_param = AMOUNT;
+            break;
+        case MINT:
+            context->next_param = SHARES;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;
