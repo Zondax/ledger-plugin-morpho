@@ -2,7 +2,7 @@
 
 /**
  * @brief Function to determine the number of screens needed for each operation
- * 
+ *
  * @param msg  msg context
  */
 void handle_finalize(ethPluginFinalize_t *msg) {
