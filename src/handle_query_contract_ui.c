@@ -102,6 +102,22 @@ static bool handle_withdraw(ethQueryContractUI_t *msg, context_t *ctx, uint8_t s
     }
 }
 
+static bool handle_mint(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Shares", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.mint.shares.value,
+                                      sizeof(ctx->tx.mint.shares.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 1:
+            strlcpy(msg->title, "Receiver", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.mint.receiver);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -131,6 +147,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             break;
         case WITHDRAW:
             ret = handle_withdraw(msg, context, msg->screenIndex);
+            break;
+        case MINT:
+            ret = handle_mint(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

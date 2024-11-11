@@ -51,6 +51,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case WITHDRAW:
             context->next_param = AMOUNT;
             break;
+        case MINT:
+            context->next_param = SHARES;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

@@ -105,6 +105,29 @@ static void handle_redeem(ethPluginProvideParameter_t *msg, context_t *context) 
     }
 }
 
+static void handle_mint(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case SHARES:
+            copy_parameter(context->tx.mint.shares.value,
+                           msg->parameter,
+                           sizeof(context->tx.mint.shares.value));
+            context->next_param = RECEIVER;
+            break;
+        case RECEIVER:
+            copy_address(context->tx.mint.receiver.value,
+                         msg->parameter,
+                         sizeof(context->tx.mint.receiver.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
 /**
  * @brief Function to parse the important parameters of the call. Calls a specific function for each
  * method
@@ -135,6 +158,9 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
             break;
         case WITHDRAW:
             handle_withdraw(msg, context);
+            break;
+        case MINT:
+            handle_mint(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
