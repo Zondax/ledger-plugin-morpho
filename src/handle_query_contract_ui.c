@@ -28,7 +28,6 @@ static bool set_address_ui(ethQueryContractUI_t *msg, address_t *value) {
         chainid);
 }
 
-
 static bool handle_deposit(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
@@ -63,6 +62,46 @@ static bool handle_approve(ethQueryContractUI_t *msg, context_t *ctx, uint8_t sc
     }
 }
 
+static bool handle_redeem(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Shares", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.redeem.shares.value,
+                                      sizeof(ctx->tx.redeem.shares.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 1:
+            strlcpy(msg->title, "Receiver", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.redeem.receiver);
+        case 2:
+            strlcpy(msg->title, "Owner", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.redeem.owner);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
+static bool handle_withdraw(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Assets", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.withdraw.assets.value,
+                                      sizeof(ctx->tx.withdraw.assets.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 1:
+            strlcpy(msg->title, "Receiver", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.withdraw.receiver);
+        case 2:
+            strlcpy(msg->title, "Owner", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.withdraw.owner);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -86,6 +125,12 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             break;
         case APPROVE:
             ret = handle_approve(msg, context, msg->screenIndex);
+            break;
+        case REDEEM:
+            ret = handle_redeem(msg, context, msg->screenIndex);
+            break;
+        case WITHDRAW:
+            ret = handle_withdraw(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

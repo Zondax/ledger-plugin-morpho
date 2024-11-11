@@ -47,13 +47,7 @@ extern const uint32_t SELECTORS[SELECTOR_COUNT];
 #define HALF_PARAMETER_LENGTH 16
 
 // Enumeration used to parse the smart contract data.
-typedef enum {
-    NONE,
-    AMOUNT,
-    RECEIVER,
-    SPENDER,
-    SHARES
-} parameter;
+typedef enum { NONE, AMOUNT, RECEIVER, SPENDER, SHARES, OWNER } parameter;
 
 typedef struct {
     uint8_t value[INT256_LENGTH];
@@ -78,13 +72,13 @@ typedef struct {
 typedef struct {
     bytes32_t shares;
     address_t receiver;
-    address_t onwer;
+    address_t owner;
 } redeem_t;
 
 typedef struct {
-    bytes32_t shares;
+    bytes32_t assets;
     address_t receiver;
-    address_t onwer;
+    address_t owner;
 } withdraw_t;
 
 typedef struct {
