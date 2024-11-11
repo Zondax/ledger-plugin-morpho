@@ -26,7 +26,8 @@
     X(MINT, 0x94bf804d)     \
     X(REDEEM, 0xba087652)   \
     X(WITHDRAW, 0xb460af94) \
-    X(APPROVE, 0x095ea7b3)
+    X(APPROVE, 0x095ea7b3)  \
+    X(SET_AUTHORIZATION, 0xeecea000)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !
@@ -47,7 +48,7 @@ extern const uint32_t SELECTORS[SELECTOR_COUNT];
 #define HALF_PARAMETER_LENGTH 16
 
 // Enumeration used to parse the smart contract data.
-typedef enum { NONE, AMOUNT, RECEIVER, SPENDER, SHARES, OWNER } parameter;
+typedef enum { NONE, AMOUNT, RECEIVER, SPENDER, SHARES, OWNER, ADDRESS, IS_AUTHORIZED } parameter;
 
 typedef struct {
     uint8_t value[INT256_LENGTH];
@@ -86,6 +87,11 @@ typedef struct {
     address_t spender;
 } approve_t;
 
+typedef struct {
+    address_t address;
+    uint16_t isAuthorized;
+} set_authorization_t;
+
 // Shared global memory with Ethereum app. Must be at most 5 * 32 bytes.
 typedef struct context_s {
     // For parsing data.
@@ -101,6 +107,7 @@ typedef struct context_s {
         redeem_t redeem;
         withdraw_t withdraw;
         approve_t approve;
+        set_authorization_t set_authorization;
     } tx;
 
     // For both parsing and display.

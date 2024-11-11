@@ -25,6 +25,9 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
         case APPROVE:
             strlcpy(msg->version, "Approve", msg->versionLength);
             break;
+        case SET_AUTHORIZATION:
+            strlcpy(msg->version, "Set Authorization", msg->versionLength);
+            break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

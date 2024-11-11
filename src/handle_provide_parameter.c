@@ -128,6 +128,29 @@ static void handle_mint(ethPluginProvideParameter_t *msg, context_t *context) {
     }
 }
 
+static void handle_set_authorization(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case ADDRESS:
+            copy_address(context->tx.set_authorization.address.value,
+                         msg->parameter,
+                         sizeof(context->tx.set_authorization.address.value));
+            context->next_param = IS_AUTHORIZED;
+            break;
+        case IS_AUTHORIZED:
+            if (!U2BE_from_parameter(msg->parameter, &context->tx.set_authorization.isAuthorized)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+            }
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
 /**
  * @brief Function to parse the important parameters of the call. Calls a specific function for each
  * method
@@ -161,6 +184,9 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
             break;
         case MINT:
             handle_mint(msg, context);
+            break;
+        case SET_AUTHORIZATION:
+            handle_set_authorization(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

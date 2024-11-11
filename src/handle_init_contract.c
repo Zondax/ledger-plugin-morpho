@@ -54,6 +54,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case MINT:
             context->next_param = SHARES;
             break;
+        case SET_AUTHORIZATION:
+            context->next_param = ADDRESS;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

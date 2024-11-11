@@ -27,6 +27,9 @@ void handle_finalize(ethPluginFinalize_t *msg) {
         case APPROVE:
             msg->numScreens = 2;
             break;
+        case SET_AUTHORIZATION:
+            msg->numScreens = 2;
+            break;
         default:
             msg->result = ETH_PLUGIN_RESULT_ERROR;
             return;
