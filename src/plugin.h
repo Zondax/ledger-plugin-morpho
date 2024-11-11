@@ -21,13 +21,14 @@
 #include "eth_plugin_interface.h"
 
 // All possible selectors for plugin
-#define SELECTORS_LIST(X)   \
-    X(DEPOSIT, 0x6e553f65)  \
-    X(MINT, 0x94bf804d)     \
-    X(REDEEM, 0xba087652)   \
-    X(WITHDRAW, 0xb460af94) \
-    X(APPROVE, 0x095ea7b3)  \
-    X(SET_AUTHORIZATION, 0xeecea000)
+#define SELECTORS_LIST(X)            \
+    X(DEPOSIT, 0x6e553f65)           \
+    X(MINT, 0x94bf804d)              \
+    X(REDEEM, 0xba087652)            \
+    X(WITHDRAW, 0xb460af94)          \
+    X(APPROVE, 0x095ea7b3)           \
+    X(SET_AUTHORIZATION, 0xeecea000) \
+    X(FLASH_LOAN, 0xe0232b42)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !
@@ -48,7 +49,23 @@ extern const uint32_t SELECTORS[SELECTOR_COUNT];
 #define HALF_PARAMETER_LENGTH 16
 
 // Enumeration used to parse the smart contract data.
-typedef enum { NONE, AMOUNT, RECEIVER, SPENDER, SHARES, OWNER, ADDRESS, IS_AUTHORIZED } parameter;
+typedef enum {
+    NONE,
+    AMOUNT,
+    RECEIVER,
+    SPENDER,
+    SHARES,
+    OWNER,
+    ADDRESS,
+    IS_AUTHORIZED,
+    TOKEN,
+    ASSETS,
+    DATA,
+    DATA_SIZE,
+    DATA_OFFSET,
+    DATA_CONTAINER_1,
+    DATA_CONTAINER_2
+} parameter;
 
 typedef struct {
     uint8_t value[INT256_LENGTH];
@@ -92,6 +109,14 @@ typedef struct {
     uint16_t isAuthorized;
 } set_authorization_t;
 
+typedef struct {
+    bytes32_t assets;
+    address_t token;
+    bytes32_t data;
+    uint16_t data_size;
+    uint16_t data_offset;
+} flash_loan_t;
+
 // Shared global memory with Ethereum app. Must be at most 5 * 32 bytes.
 typedef struct context_s {
     // For parsing data.
@@ -107,7 +132,9 @@ typedef struct context_s {
         redeem_t redeem;
         withdraw_t withdraw;
         approve_t approve;
+        // MorphoBlue
         set_authorization_t set_authorization;
+        flash_loan_t flash_loan;
     } tx;
 
     // For both parsing and display.

@@ -1,6 +1,66 @@
 #include "plugin.h"
 
 /**
+ * @brief Convert byte array into a hexadecimal string
+ *
+ * @param dst
+ * @param dstLen
+ * @param src
+ * @param count
+ * @param addEllipsis
+ * @return true
+ * @return false
+ */
+static bool array_to_hexstr(char *dst,
+                            size_t dstLen,
+                            const uint8_t *src,
+                            uint16_t count,
+                            bool addEllipsis) {
+    memset(dst, 0, dstLen);
+    if (dstLen < (count * 2 + 1)) {
+        return false;
+    }
+
+    const char hexchars[] = "0123456789abcdef";
+    int halfCount = count / 2;  // Calculate the middle point
+
+    for (int i = 0; i < halfCount; i++, src++) {
+        *dst++ = hexchars[*src >> 4u];
+        *dst++ = hexchars[*src & 0x0Fu];
+    }
+
+    if (addEllipsis) {
+        // Add "..." in the middle
+        *dst++ = '.';
+        *dst++ = '.';
+        *dst++ = '.';
+    }
+
+    for (int i = halfCount; i < count; i++, src++) {
+        *dst++ = hexchars[*src >> 4u];
+        *dst++ = hexchars[*src & 0x0Fu];
+    }
+
+    *dst = 0;  // terminate string
+
+    return true;
+}
+
+/**
+ * @brief Create ui for byte array
+ *
+ * @param msg
+ * @param array
+ * @param title
+ * @return true
+ * @return false
+ */
+static bool set_bytes32_ui(ethQueryContractUI_t *msg, bytes32_t *array, const char *title) {
+    strlcpy(msg->title, title, msg->titleLength);
+    return array_to_hexstr(msg->msg, msg->msgLength, array->value, 32, array->ellipsis);
+}
+
+/**
  * @brief Set the bool ui object
  *
  * @param msg msg context
@@ -156,6 +216,25 @@ static bool handle_set_authorization(ethQueryContractUI_t *msg,
             return false;
     }
 }
+
+static bool handle_flash_loan(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Token", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.flash_loan.token);
+        case 1:
+            strlcpy(msg->title, "Assets", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.flash_loan.assets.value,
+                                      sizeof(ctx->tx.flash_loan.assets.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 2:
+            return set_bytes32_ui(msg, &ctx->tx.flash_loan.data, "Data");
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -191,6 +270,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             break;
         case SET_AUTHORIZATION:
             ret = handle_set_authorization(msg, context, msg->screenIndex);
+            break;
+        case FLASH_LOAN:
+            ret = handle_flash_loan(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

@@ -30,6 +30,9 @@ void handle_finalize(ethPluginFinalize_t *msg) {
         case SET_AUTHORIZATION:
             msg->numScreens = 2;
             break;
+        case FLASH_LOAN:
+            msg->numScreens = 3;
+            break;
         default:
             msg->result = ETH_PLUGIN_RESULT_ERROR;
             return;
