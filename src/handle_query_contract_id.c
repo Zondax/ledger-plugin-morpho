@@ -31,6 +31,9 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
         case FLASH_LOAN:
             strlcpy(msg->version, "Flash Loan", msg->versionLength);
             break;
+        case BORROW:
+            strlcpy(msg->version, "Borrow", msg->versionLength);
+            break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

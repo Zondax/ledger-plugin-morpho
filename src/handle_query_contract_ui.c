@@ -235,6 +235,29 @@ static bool handle_flash_loan(ethQueryContractUI_t *msg, context_t *ctx, uint8_t
             return false;
     }
 }
+
+static bool handle_borrow(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Assets", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.borrow.assets.value,
+                                      sizeof(ctx->tx.borrow.assets.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 1:
+            strlcpy(msg->title, "Shares", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.borrow.shares.value,
+                                      sizeof(ctx->tx.borrow.shares.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 2:
+            strlcpy(msg->title, "onBehalf", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.borrow.sender);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -273,6 +296,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             break;
         case FLASH_LOAN:
             ret = handle_flash_loan(msg, context, msg->screenIndex);
+            break;
+        case BORROW:
+            ret = handle_borrow(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

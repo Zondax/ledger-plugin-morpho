@@ -60,6 +60,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case FLASH_LOAN:
             context->next_param = TOKEN;
             break;
+        case BORROW:
+            context->next_param = TUPPLE_1;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

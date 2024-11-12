@@ -28,7 +28,8 @@
     X(WITHDRAW, 0xb460af94)          \
     X(APPROVE, 0x095ea7b3)           \
     X(SET_AUTHORIZATION, 0xeecea000) \
-    X(FLASH_LOAN, 0xe0232b42)
+    X(FLASH_LOAN, 0xe0232b42)        \
+    X(BORROW, 0x50d8cd4b)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !
@@ -64,7 +65,13 @@ typedef enum {
     DATA_SIZE,
     DATA_OFFSET,
     DATA_CONTAINER_1,
-    DATA_CONTAINER_2
+    DATA_CONTAINER_2,
+    TUPPLE_1,
+    TUPPLE_2,
+    TUPPLE_3,
+    TUPPLE_4,
+    TUPPLE_5,
+    SENDER
 } parameter;
 
 typedef struct {
@@ -117,6 +124,12 @@ typedef struct {
     uint16_t data_offset;
 } flash_loan_t;
 
+typedef struct {
+    bytes32_t assets;
+    bytes32_t shares;
+    address_t sender;
+} borrow_t;
+
 // Shared global memory with Ethereum app. Must be at most 5 * 32 bytes.
 typedef struct context_s {
     // For parsing data.
@@ -135,6 +148,7 @@ typedef struct context_s {
         // MorphoBlue
         set_authorization_t set_authorization;
         flash_loan_t flash_loan;
+        borrow_t borrow;
     } tx;
 
     // For both parsing and display.

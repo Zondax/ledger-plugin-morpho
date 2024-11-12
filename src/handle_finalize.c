@@ -33,6 +33,9 @@ void handle_finalize(ethPluginFinalize_t *msg) {
         case FLASH_LOAN:
             msg->numScreens = 3;
             break;
+        case BORROW:
+            msg->numScreens = 3;
+            break;
         default:
             msg->result = ETH_PLUGIN_RESULT_ERROR;
             return;
