@@ -32,7 +32,9 @@
     X(BORROW, 0x50d8cd4b)            \
     X(REPAY, 0x20b76e81)             \
     X(WITHDRAW_BLUE, 0x5c2bea49)     \
-    X(SUPPLY, 0xa99aad89)
+    X(SUPPLY, 0xa99aad89)            \
+    X(SUPPLY_COLLATERAL, 0x238d6579) \
+    X(WITHDRAW_COLLATERAL, 0x8720316d)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !

@@ -16,6 +16,8 @@ void handle_finalize(ethPluginFinalize_t *msg) {
         case MINT:
         case APPROVE:
         case SET_AUTHORIZATION:
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
             msg->numScreens = 2;
             break;
         case REDEEM:

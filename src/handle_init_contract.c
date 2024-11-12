@@ -64,6 +64,8 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case REPAY:
         case WITHDRAW_BLUE:
         case SUPPLY:
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
             context->next_param = TUPPLE_1;
             break;
         default:

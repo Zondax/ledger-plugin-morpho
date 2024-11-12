@@ -329,6 +329,44 @@ static void handle_generic(ethPluginProvideParameter_t *msg, context_t *context)
     }
 }
 
+static void handle_generic_2(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case TUPPLE_1:
+            context->next_param = TUPPLE_2;
+            break;
+        case TUPPLE_2:
+            context->next_param = TUPPLE_3;
+            break;
+        case TUPPLE_3:
+            context->next_param = TUPPLE_4;
+            break;
+        case TUPPLE_4:
+            context->next_param = TUPPLE_5;
+            break;
+        case TUPPLE_5:
+            context->next_param = ASSETS;
+            break;
+        case ASSETS:
+            copy_parameter(context->tx.generic.assets.value,
+                           msg->parameter,
+                           sizeof(context->tx.generic.assets.value));
+            context->next_param = SENDER;
+            break;
+        case SENDER:
+            copy_address(context->tx.generic.sender.value,
+                         msg->parameter,
+                         sizeof(context->tx.generic.sender.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
 /**
  * @brief Function to parse the important parameters of the call. Calls a specific function for each
  * method
@@ -374,6 +412,10 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
         case WITHDRAW_BLUE:
         case SUPPLY:
             handle_generic(msg, context);
+            break;
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
+            handle_generic_2(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

@@ -258,6 +258,24 @@ static bool handle_generic(ethQueryContractUI_t *msg, context_t *ctx, uint8_t sc
             return false;
     }
 }
+
+static bool handle_generic_2(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Assets", msg->titleLength);
+            return uint256_to_decimal(ctx->tx.generic.assets.value,
+                                      sizeof(ctx->tx.generic.assets.value),
+                                      msg->msg,
+                                      msg->msgLength);
+        case 1:
+            strlcpy(msg->title, "onBehalf", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.generic.sender);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -302,6 +320,10 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
         case WITHDRAW_BLUE:
         case SUPPLY:
             ret = handle_generic(msg, context, msg->screenIndex);
+            break;
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
+            ret = handle_generic_2(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);
