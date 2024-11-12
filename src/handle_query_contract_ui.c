@@ -236,23 +236,23 @@ static bool handle_flash_loan(ethQueryContractUI_t *msg, context_t *ctx, uint8_t
     }
 }
 
-static bool handle_borrow(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+static bool handle_generic(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
             strlcpy(msg->title, "Assets", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.borrow.assets.value,
-                                      sizeof(ctx->tx.borrow.assets.value),
+            return uint256_to_decimal(ctx->tx.generic.assets.value,
+                                      sizeof(ctx->tx.generic.assets.value),
                                       msg->msg,
                                       msg->msgLength);
         case 1:
             strlcpy(msg->title, "Shares", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.borrow.shares.value,
-                                      sizeof(ctx->tx.borrow.shares.value),
+            return uint256_to_decimal(ctx->tx.generic.shares.value,
+                                      sizeof(ctx->tx.generic.shares.value),
                                       msg->msg,
                                       msg->msgLength);
         case 2:
             strlcpy(msg->title, "onBehalf", msg->titleLength);
-            return set_address_ui(msg, &ctx->tx.borrow.sender);
+            return set_address_ui(msg, &ctx->tx.generic.sender);
         default:
             PRINTF("Received an invalid screenIndex\n");
             return false;
@@ -298,7 +298,10 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             ret = handle_flash_loan(msg, context, msg->screenIndex);
             break;
         case BORROW:
-            ret = handle_borrow(msg, context, msg->screenIndex);
+        case REPAY:
+        case WITHDRAW_BLUE:
+        case SUPPLY:
+            ret = handle_generic(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

@@ -20,6 +20,7 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
             strlcpy(msg->version, "Redeem", msg->versionLength);
             break;
         case WITHDRAW:
+        case WITHDRAW_BLUE:
             strlcpy(msg->version, "Withdraw", msg->versionLength);
             break;
         case APPROVE:
@@ -33,6 +34,12 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
             break;
         case BORROW:
             strlcpy(msg->version, "Borrow", msg->versionLength);
+            break;
+        case REPAY:
+            strlcpy(msg->version, "Repay", msg->versionLength);
+            break;
+        case SUPPLY:
+            strlcpy(msg->version, "Supply", msg->versionLength);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

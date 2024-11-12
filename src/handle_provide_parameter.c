@@ -285,7 +285,7 @@ static void handle_flash_loan(ethPluginProvideParameter_t *msg, context_t *conte
     }
 }
 
-static void handle_borrow(ethPluginProvideParameter_t *msg, context_t *context) {
+static void handle_generic(ethPluginProvideParameter_t *msg, context_t *context) {
     switch (context->next_param) {
         case TUPPLE_1:
             context->next_param = TUPPLE_2;
@@ -303,21 +303,21 @@ static void handle_borrow(ethPluginProvideParameter_t *msg, context_t *context) 
             context->next_param = ASSETS;
             break;
         case ASSETS:
-            copy_parameter(context->tx.borrow.assets.value,
+            copy_parameter(context->tx.generic.assets.value,
                            msg->parameter,
-                           sizeof(context->tx.borrow.assets.value));
+                           sizeof(context->tx.generic.assets.value));
             context->next_param = SHARES;
             break;
         case SHARES:
-            copy_parameter(context->tx.borrow.shares.value,
+            copy_parameter(context->tx.generic.shares.value,
                            msg->parameter,
-                           sizeof(context->tx.borrow.shares.value));
+                           sizeof(context->tx.generic.shares.value));
             context->next_param = SENDER;
             break;
         case SENDER:
-            copy_address(context->tx.borrow.sender.value,
+            copy_address(context->tx.generic.sender.value,
                          msg->parameter,
-                         sizeof(context->tx.borrow.sender.value));
+                         sizeof(context->tx.generic.sender.value));
             context->next_param = NONE;
             break;
         case NONE:
@@ -370,7 +370,10 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
             handle_flash_loan(msg, context);
             break;
         case BORROW:
-            handle_borrow(msg, context);
+        case REPAY:
+        case WITHDRAW_BLUE:
+        case SUPPLY:
+            handle_generic(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

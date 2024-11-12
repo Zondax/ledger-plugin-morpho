@@ -61,6 +61,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
             context->next_param = TOKEN;
             break;
         case BORROW:
+        case REPAY:
+        case WITHDRAW_BLUE:
+        case SUPPLY:
             context->next_param = TUPPLE_1;
             break;
         default:
