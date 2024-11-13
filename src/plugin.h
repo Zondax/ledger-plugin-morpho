@@ -35,7 +35,8 @@
     X(SUPPLY, 0xa99aad89)              \
     X(SUPPLY_COLLATERAL, 0x238d6579)   \
     X(WITHDRAW_COLLATERAL, 0x8720316d) \
-    X(CREATE_MARKET, 0x8c1358a2)
+    X(CREATE_MARKET, 0x8c1358a2)       \
+    X(SET_AUTHORIZATION_WITH_SIG, 0x8069218f)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !
@@ -80,6 +81,8 @@ typedef enum {
     SENDER,
     LOAN_TOKEN,
     COLLATERAL_TOKEN,
+    AUTHORIZED,
+    AUTHORIZER,
 } parameter;
 
 typedef struct {
@@ -143,6 +146,12 @@ typedef struct {
     address_t collateral_token;
 } create_market_t;
 
+typedef struct {
+    address_t authorizer;
+    address_t authorized;
+    uint16_t isAuthorized;
+} set_authorization_with_sig_t;
+
 // Shared global memory with Ethereum app. Must be at most 5 * 32 bytes.
 typedef struct context_s {
     // For parsing data.
@@ -163,6 +172,7 @@ typedef struct context_s {
         flash_loan_t flash_loan;
         morpho_blue_generic_t generic;  // borrow, repay, withdraw_blue, supply, supply_collateral
         create_market_t create_market;
+        set_authorization_with_sig_t set_authorization_with_sig;
     } tx;
 
     // For both parsing and display.

@@ -290,6 +290,27 @@ static bool handle_create_market(ethQueryContractUI_t *msg, context_t *ctx, uint
     }
 }
 
+static bool handle_set_authorization_with_sig(ethQueryContractUI_t *msg,
+                                              context_t *ctx,
+                                              uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Authorizer", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.set_authorization_with_sig.authorizer);
+        case 1:
+            strlcpy(msg->title, "Authorized", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.set_authorization_with_sig.authorized);
+        case 2:
+            strlcpy(msg->title, "Is Authorized", msg->titleLength);
+            return set_bool_ui(msg,
+                               ctx->tx.set_authorization_with_sig.isAuthorized,
+                               "Is Authorized");
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -341,6 +362,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             break;
         case CREATE_MARKET:
             ret = handle_create_market(msg, context, msg->screenIndex);
+            break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            ret = handle_set_authorization_with_sig(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

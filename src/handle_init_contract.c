@@ -71,6 +71,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case CREATE_MARKET:
             context->next_param = LOAN_TOKEN;
             break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            context->next_param = AUTHORIZER;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

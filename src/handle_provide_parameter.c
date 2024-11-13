@@ -390,6 +390,37 @@ static void handle_create_market(ethPluginProvideParameter_t *msg, context_t *co
     }
 }
 
+static void handle_set_authorization_with_sig(ethPluginProvideParameter_t *msg,
+                                              context_t *context) {
+    switch (context->next_param) {
+        case AUTHORIZER:
+            copy_address(context->tx.set_authorization_with_sig.authorizer.value,
+                         msg->parameter,
+                         sizeof(context->tx.set_authorization_with_sig.authorizer.value));
+            context->next_param = AUTHORIZED;
+            break;
+        case AUTHORIZED:
+            copy_address(context->tx.set_authorization_with_sig.authorized.value,
+                         msg->parameter,
+                         sizeof(context->tx.set_authorization_with_sig.authorized.value));
+            context->next_param = IS_AUTHORIZED;
+            break;
+        case IS_AUTHORIZED:
+            if (!U2BE_from_parameter(msg->parameter,
+                                     &context->tx.set_authorization_with_sig.isAuthorized)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+            }
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
 /**
  * @brief Function to parse the important parameters of the call. Calls a specific function for each
  * method
@@ -442,6 +473,9 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
             break;
         case CREATE_MARKET:
             handle_create_market(msg, context);
+            break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            handle_set_authorization_with_sig(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

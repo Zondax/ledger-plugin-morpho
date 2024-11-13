@@ -50,6 +50,9 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
         case CREATE_MARKET:
             strlcpy(msg->version, "Create Market", msg->versionLength);
             break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            strlcpy(msg->version, "Set Auth With Sig", msg->versionLength);
+            break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

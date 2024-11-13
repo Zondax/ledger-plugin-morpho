@@ -28,6 +28,7 @@ void handle_finalize(ethPluginFinalize_t *msg) {
         case REPAY:
         case WITHDRAW_BLUE:
         case SUPPLY:
+        case SET_AUTHORIZATION_WITH_SIG:
             msg->numScreens = 3;
             break;
         default:
