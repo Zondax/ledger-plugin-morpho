@@ -18,6 +18,7 @@ void handle_finalize(ethPluginFinalize_t *msg) {
         case SET_AUTHORIZATION:
         case SUPPLY_COLLATERAL:
         case WITHDRAW_COLLATERAL:
+        case CREATE_MARKET:
             msg->numScreens = 2;
             break;
         case REDEEM:

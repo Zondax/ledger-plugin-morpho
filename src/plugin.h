@@ -21,20 +21,21 @@
 #include "eth_plugin_interface.h"
 
 // All possible selectors for plugin
-#define SELECTORS_LIST(X)            \
-    X(DEPOSIT, 0x6e553f65)           \
-    X(MINT, 0x94bf804d)              \
-    X(REDEEM, 0xba087652)            \
-    X(WITHDRAW, 0xb460af94)          \
-    X(APPROVE, 0x095ea7b3)           \
-    X(SET_AUTHORIZATION, 0xeecea000) \
-    X(FLASH_LOAN, 0xe0232b42)        \
-    X(BORROW, 0x50d8cd4b)            \
-    X(REPAY, 0x20b76e81)             \
-    X(WITHDRAW_BLUE, 0x5c2bea49)     \
-    X(SUPPLY, 0xa99aad89)            \
-    X(SUPPLY_COLLATERAL, 0x238d6579) \
-    X(WITHDRAW_COLLATERAL, 0x8720316d)
+#define SELECTORS_LIST(X)              \
+    X(DEPOSIT, 0x6e553f65)             \
+    X(MINT, 0x94bf804d)                \
+    X(REDEEM, 0xba087652)              \
+    X(WITHDRAW, 0xb460af94)            \
+    X(APPROVE, 0x095ea7b3)             \
+    X(SET_AUTHORIZATION, 0xeecea000)   \
+    X(FLASH_LOAN, 0xe0232b42)          \
+    X(BORROW, 0x50d8cd4b)              \
+    X(REPAY, 0x20b76e81)               \
+    X(WITHDRAW_BLUE, 0x5c2bea49)       \
+    X(SUPPLY, 0xa99aad89)              \
+    X(SUPPLY_COLLATERAL, 0x238d6579)   \
+    X(WITHDRAW_COLLATERAL, 0x8720316d) \
+    X(CREATE_MARKET, 0x8c1358a2)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !
@@ -76,7 +77,9 @@ typedef enum {
     TUPPLE_3,
     TUPPLE_4,
     TUPPLE_5,
-    SENDER
+    SENDER,
+    LOAN_TOKEN,
+    COLLATERAL_TOKEN,
 } parameter;
 
 typedef struct {
@@ -135,6 +138,11 @@ typedef struct {
     address_t sender;
 } morpho_blue_generic_t;
 
+typedef struct {
+    address_t loan_token;
+    address_t collateral_token;
+} create_market_t;
+
 // Shared global memory with Ethereum app. Must be at most 5 * 32 bytes.
 typedef struct context_s {
     // For parsing data.
@@ -153,7 +161,8 @@ typedef struct context_s {
         // MorphoBlue
         set_authorization_t set_authorization;
         flash_loan_t flash_loan;
-        morpho_blue_generic_t generic;  // borrow, repay
+        morpho_blue_generic_t generic;  // borrow, repay, withdraw_blue, supply, supply_collateral
+        create_market_t create_market;
     } tx;
 
     // For both parsing and display.

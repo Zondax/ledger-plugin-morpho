@@ -68,6 +68,9 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case WITHDRAW_COLLATERAL:
             context->next_param = TUPPLE_1;
             break;
+        case CREATE_MARKET:
+            context->next_param = LOAN_TOKEN;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

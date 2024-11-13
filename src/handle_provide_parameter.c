@@ -367,6 +367,29 @@ static void handle_generic_2(ethPluginProvideParameter_t *msg, context_t *contex
     }
 }
 
+static void handle_create_market(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case LOAN_TOKEN:
+            copy_address(context->tx.create_market.loan_token.value,
+                         msg->parameter,
+                         sizeof(context->tx.create_market.loan_token.value));
+            context->next_param = COLLATERAL_TOKEN;
+            break;
+        case COLLATERAL_TOKEN:
+            copy_address(context->tx.create_market.collateral_token.value,
+                         msg->parameter,
+                         sizeof(context->tx.create_market.collateral_token.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
 /**
  * @brief Function to parse the important parameters of the call. Calls a specific function for each
  * method
@@ -416,6 +439,9 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
         case SUPPLY_COLLATERAL:
         case WITHDRAW_COLLATERAL:
             handle_generic_2(msg, context);
+            break;
+        case CREATE_MARKET:
+            handle_create_market(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

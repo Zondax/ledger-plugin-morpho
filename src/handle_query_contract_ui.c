@@ -276,6 +276,20 @@ static bool handle_generic_2(ethQueryContractUI_t *msg, context_t *ctx, uint8_t 
     }
 }
 
+static bool handle_create_market(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Loan Token", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.create_market.loan_token);
+        case 1:
+            strlcpy(msg->title, "Collateral Token", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.create_market.collateral_token);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -324,6 +338,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
         case SUPPLY_COLLATERAL:
         case WITHDRAW_COLLATERAL:
             ret = handle_generic_2(msg, context, msg->screenIndex);
+            break;
+        case CREATE_MARKET:
+            ret = handle_create_market(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);

@@ -47,6 +47,9 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
         case WITHDRAW_COLLATERAL:
             strlcpy(msg->version, "Withdraw Collateral", msg->versionLength);
             break;
+        case CREATE_MARKET:
+            strlcpy(msg->version, "Create Market", msg->versionLength);
+            break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;
