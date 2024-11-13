@@ -421,6 +421,23 @@ static void handle_set_authorization_with_sig(ethPluginProvideParameter_t *msg,
     }
 }
 
+static void handle_reallocate(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case VAULT:
+            copy_address(context->tx.reallocate.vault.value,
+                         msg->parameter,
+                         sizeof(context->tx.reallocate.vault.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
 /**
  * @brief Function to parse the important parameters of the call. Calls a specific function for each
  * method
@@ -476,6 +493,9 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
             break;
         case SET_AUTHORIZATION_WITH_SIG:
             handle_set_authorization_with_sig(msg, context);
+            break;
+        case REALLOCATE:
+            handle_reallocate(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

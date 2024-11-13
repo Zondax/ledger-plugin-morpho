@@ -311,6 +311,17 @@ static bool handle_set_authorization_with_sig(ethQueryContractUI_t *msg,
     }
 }
 
+static bool handle_reallocate(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
+    switch (screenIndex) {
+        case 0:
+            strlcpy(msg->title, "Vault", msg->titleLength);
+            return set_address_ui(msg, &ctx->tx.reallocate.vault);
+        default:
+            PRINTF("Received an invalid screenIndex\n");
+            return false;
+    }
+}
+
 /**
  * @brief Fucntion for ui showing. Calls specific function for each method
  *
@@ -365,6 +376,9 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
             break;
         case SET_AUTHORIZATION_WITH_SIG:
             ret = handle_set_authorization_with_sig(msg, context, msg->screenIndex);
+            break;
+        case REALLOCATE:
+            ret = handle_reallocate(msg, context, msg->screenIndex);
             break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);
