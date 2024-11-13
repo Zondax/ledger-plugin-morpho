@@ -12,20 +12,27 @@ void handle_finalize(ethPluginFinalize_t *msg) {
 
     // The total number of screen you will need.
     switch (context->selectorIndex) {
-        case DEPOSIT:
-            msg->numScreens = 2;
+        case REALLOCATE:
+            msg->numScreens = 1;
             break;
+        case DEPOSIT:
         case MINT:
+        case APPROVE:
+        case SET_AUTHORIZATION:
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
+        case CREATE_MARKET:
             msg->numScreens = 2;
             break;
         case REDEEM:
-            msg->numScreens = 3;
-            break;
         case WITHDRAW:
+        case FLASH_LOAN:
+        case BORROW:
+        case REPAY:
+        case WITHDRAW_BLUE:
+        case SUPPLY:
+        case SET_AUTHORIZATION_WITH_SIG:
             msg->numScreens = 3;
-            break;
-        case APPROVE:
-            msg->numScreens = 2;
             break;
         default:
             msg->result = ETH_PLUGIN_RESULT_ERROR;

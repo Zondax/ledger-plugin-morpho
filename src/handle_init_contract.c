@@ -54,6 +54,29 @@ void handle_init_contract(ethPluginInitContract_t *msg) {
         case MINT:
             context->next_param = SHARES;
             break;
+        case SET_AUTHORIZATION:
+            context->next_param = ADDRESS;
+            break;
+        case FLASH_LOAN:
+            context->next_param = TOKEN;
+            break;
+        case BORROW:
+        case REPAY:
+        case WITHDRAW_BLUE:
+        case SUPPLY:
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
+            context->next_param = TUPPLE_1;
+            break;
+        case CREATE_MARKET:
+            context->next_param = LOAN_TOKEN;
+            break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            context->next_param = AUTHORIZER;
+            break;
+        case REALLOCATE:
+            context->next_param = VAULT;
+            break;
         default:
             PRINTF("Missing selectorIndex: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;

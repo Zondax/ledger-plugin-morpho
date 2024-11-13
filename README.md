@@ -34,28 +34,38 @@ Smart contracts covered by the plugin shall be described here:
 
 |  Network | Smart Contract                  | Address                                    |
 |   ----   |      ----                       |   ---                                      |
-| Ethereum | EthereumBundlerV2               | 0x4095F064B8d3c3548A3bebfd0Bbfd04750E30077 |
-| Ethereum | EthereumBundler                 | 0xa7995f71aa11525db02fc2473c37dee5dbf55107 |
-| Ethereum | AaveV2MigrationBundler          | 0xb3dcc75db379925edfd3007511a8ce0cb4aa8e76 |
-| Ethereum | AaveV3MigrationBundler          | 0x98ccb155e86bb478d514a827d16f58c6912f9bdc |
-| Ethereum | AaveV3OptimizerMigrationBundler | 0x16f38d2e764e7bebf625a8e995b34968226d2f9c |
-| Ethereum | CompoundV2MigrationBundler      | 0x26bf52a84360ad3d01d7cdc28fc2ddc04d8c8647 |
-| Ethereum | CompoundV3MigrationBundler      | 0x3a0e2e9fb9c95fbc843daf166276c90b6c479558 |
-| Base     | CompoundV3MigrationBundlerV2    | 0x1f8076e2eb6f10b12e6886f30d4909a91969f7da |
-| Base     | ChainAgnosticBundlerV2          | 0x23055618898e202386e6c13955a58D3C68200BFB |
-| Base     | CompoundV2MigrationBundlerV2    | 0x123f3167a416cA19365dE03a65e0AF3532af7223 |
-| Base     | AaveV3MigrationBundlerV2        | 0xcAe2929baBc60Be34818EaA5F40bF69265677108 |
+| Ethereum | Public Allocator                | 0xfd32fA2ca22c76dD6E550706Ad913FC6CE91c75D |
+| Base     | Public Allocator                | 0xA090dD1a701408Df1d4d0B85b716c87565f90467 |
+| Ethereum | MorphoBlue                      | 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb |
+| Base     | MorphoBlue                      | 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb |
+| Ethereum | MetaMorpho Factory*             | 0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101 |
+| Base     | MetaMorpho Factory*             | 0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101 |
 
+*Plugin will support methods for the vaults created by the factory.
 
 ## Functions
 
 For the smart contracts implemented, the functions covered by the plugin shall be described here:
 
-|    Function   | Selector  | Displayed Parameters |
-|    ---        | ---       | --- |
-| Multicall*     | `0xac9650d8`| <table><tbody> <tr><td><code>bytes[] call</code></td></tr> </tbody></table> |
+|    Function               | Selector      | Displayed Parameters |
+|    ---                    | ---           | --- |
+| reallocateTo              | 0x833947fd    |  <table><tbody> <tr><td><code>address vault</code></td></tr> </tbody></table> |
+| repay                     | 0x20b76e81    | <table><tbody> <tr><td><code>uint256 assets</code></td></tr><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address onBehalf</code></td></tr> </tbody></table> |
+| supplyCollateral          | 0x238d6579    | <table><tbody> <tr><td><code>uint256 assets</code></td></tr><tr><td><code>address onBehalf</code></td></tr> </tbody></table> |
+| borrow                    | 0x50d8cd4b    | <table><tbody> <tr><td><code>uint256 assets</code></td></tr><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address onBehalf</code></td></tr> </tbody></table> |
+| withdraw                  | 0x5c2bea49    | <table><tbody> <tr><td><code>uint256 assets</code></td></tr><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address onBehalf</code></td></tr> </tbody></table> |
+| setAuthorizationWithSig   | 0x8069218f    | <table><tbody> <tr><td><code>address authorizer</code></td></tr><tr><td><code>address authorized</code></td></tr><tr><td><code>bool isAuthorized</code></td></tr> </tbody></table> |
+| withdrawCollateral        | 0x8720316d    | <table><tbody> <tr><td><code>uint256 assets</code></td></tr><tr><td><code>address onBehalf</code></td></tr> </tbody></table> |
+| createMarket              | 0x8c1358a2    | <table><tbody> <tr><td><code>address loan_token</code></td></tr><tr><td><code>address collateral_token</code></td></tr> </tbody></table> |
+| supply                    | 0xa99aad89    | <table><tbody> <tr><td><code>uint256 assets</code></td></tr><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address onBehalf</code></td></tr> </tbody></table> |
+| flashLoan                 | 0xe0232b42    | <table><tbody> <tr><td><code>address token</code></td></tr><tr><td><code>uint256 assets</code></td></tr> </tbody></table> |
+| setAuthorization          | 0xeecea000    | <table><tbody><tr><td><code>address authorized</code></td></tr><tr><td><code>bool isAuthorized</code></td></tr> </tbody></table> |
+| deposit                   | 0x6e553f65   | <table><tbody><tr><td><code>uint256 assets</code></td></tr><tr><td><code>address receiver</code></td></tr> </tbody></table> |
+| mint                      | 0x94bf804d    | <table><tbody><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address receiver</code></td></tr> </tbody></table> |
+| redeem                    | 0xba087652    | <table><tbody><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address receiver</code></td></tr> <tr><td><code>address owner</code></td></tr></tbody></table> |
+| withdraw                  | 0xb460af94    | <table><tbody><tr><td><code>uint256 assets</code></td></tr><tr><td><code>address receiver</code></td></tr> <tr><td><code>address owner</code></td></tr></tbody></table> |
+| approve                   | 0x095ea7b3     | <table><tbody><tr><td><code>uint256 shares</code></td></tr><tr><td><code>address spender</code></td></tr> </tbody></table> |
 
-*For byte arrays bigger then 32, plugin is showing the first and last 16 bytes in "16...16" format, due to memory limitations. Plugin will process a maximum of 3 calls in the method.
 
 ## How to build
 
