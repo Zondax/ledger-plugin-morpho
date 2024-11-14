@@ -20,20 +20,29 @@
 #include <string.h>
 #include "eth_plugin_interface.h"
 
-// All possible selectors of your plugin.
-// EDIT THIS: Enter your selectors here, in the format X(NAME, value)
-// A Xmacro below will create for you:
-//     - an enum named selector_t with every NAME
-//     - a map named SELECTORS associating each NAME with it's value
-#define SELECTORS_LIST(X) X(MULTICALL, 0xac9650d8)
+// All possible selectors for plugin
+#define SELECTORS_LIST(X)                     \
+    X(DEPOSIT, 0x6e553f65)                    \
+    X(MINT, 0x94bf804d)                       \
+    X(REDEEM, 0xba087652)                     \
+    X(WITHDRAW, 0xb460af94)                   \
+    X(APPROVE, 0x095ea7b3)                    \
+    X(SET_AUTHORIZATION, 0xeecea000)          \
+    X(FLASH_LOAN, 0xe0232b42)                 \
+    X(BORROW, 0x50d8cd4b)                     \
+    X(REPAY, 0x20b76e81)                      \
+    X(WITHDRAW_BLUE, 0x5c2bea49)              \
+    X(SUPPLY, 0xa99aad89)                     \
+    X(SUPPLY_COLLATERAL, 0x238d6579)          \
+    X(WITHDRAW_COLLATERAL, 0x8720316d)        \
+    X(CREATE_MARKET, 0x8c1358a2)              \
+    X(SET_AUTHORIZATION_WITH_SIG, 0x8069218f) \
+    X(REALLOCATE, 0x833947fd)
 
 // Xmacro helpers to define the enum and map
 // Do not modify !
 #define TO_ENUM(selector_name, selector_id)  selector_name,
 #define TO_VALUE(selector_name, selector_id) selector_id,
-
-#define OFFSET_LENGTH 3
-#define CALL_LENGTH   3
 
 // This enum will be automatically expanded to hold all selector names.
 // The value SELECTOR_COUNT can be used to get the number of defined selectors
@@ -49,12 +58,105 @@ extern const uint32_t SELECTORS[SELECTOR_COUNT];
 #define HALF_PARAMETER_LENGTH 16
 
 // Enumeration used to parse the smart contract data.
-typedef enum { OFFSET = 0, N_CALL, OFFSETS, CALL_LEN, CALL, CALL_1, CALL_2, NONE } parameter;
+typedef enum {
+    NONE,
+    AMOUNT,
+    RECEIVER,
+    SPENDER,
+    SHARES,
+    OWNER,
+    ADDRESS,
+    IS_AUTHORIZED,
+    TOKEN,
+    ASSETS,
+    DATA,
+    DATA_SIZE,
+    DATA_OFFSET,
+    DATA_CONTAINER_1,
+    DATA_CONTAINER_2,
+    TUPPLE_1,
+    TUPPLE_2,
+    TUPPLE_3,
+    TUPPLE_4,
+    TUPPLE_5,
+    SENDER,
+    LOAN_TOKEN,
+    COLLATERAL_TOKEN,
+    AUTHORIZED,
+    AUTHORIZER,
+    VAULT,
+} parameter;
 
 typedef struct {
     uint8_t value[INT256_LENGTH];
     bool ellipsis;
 } bytes32_t;
+
+typedef struct {
+    uint8_t value[ADDRESS_LENGTH];
+} address_t;
+
+// Tx struct for each operation
+typedef struct {
+    bytes32_t assets;
+    address_t receiver;
+} deposit_t;
+
+typedef struct {
+    bytes32_t shares;
+    address_t receiver;
+} mint_t;
+
+typedef struct {
+    bytes32_t shares;
+    address_t receiver;
+    address_t owner;
+} redeem_t;
+
+typedef struct {
+    bytes32_t assets;
+    address_t receiver;
+    address_t owner;
+} withdraw_t;
+
+typedef struct {
+    bytes32_t shares;
+    address_t spender;
+} approve_t;
+
+typedef struct {
+    address_t address;
+    uint16_t isAuthorized;
+} set_authorization_t;
+
+typedef struct {
+    bytes32_t assets;
+    address_t token;
+    bytes32_t data;
+    uint16_t data_size;
+    uint16_t data_offset;
+} flash_loan_t;
+
+typedef struct {
+    bytes32_t assets;
+    bytes32_t shares;
+    address_t sender;
+} morpho_blue_generic_t;
+
+typedef struct {
+    address_t loan_token;
+    address_t collateral_token;
+} create_market_t;
+
+typedef struct {
+    address_t authorizer;
+    address_t authorized;
+    uint16_t isAuthorized;
+} set_authorization_with_sig_t;
+
+typedef struct {
+    address_t vault;
+} reallocate_t;
 
 // Shared global memory with Ethereum app. Must be at most 5 * 32 bytes.
 typedef struct context_s {
@@ -64,12 +166,21 @@ typedef struct context_s {
     bool go_to_offset;   // If set, will force the parsing to iterate through parameters until
                          // `offset` is reached.
 
-    uint16_t n_calls;
-    uint16_t call_len[CALL_LENGTH];
-    bytes32_t call[CALL_LENGTH];
-    uint8_t id;
-    uint16_t offsets[OFFSET_LENGTH];
-    uint16_t offsets_start;
+    union {
+        // MetaMorpho
+        deposit_t deposit;
+        mint_t mint;
+        redeem_t redeem;
+        withdraw_t withdraw;
+        approve_t approve;
+        // MorphoBlue
+        set_authorization_t set_authorization;
+        flash_loan_t flash_loan;
+        morpho_blue_generic_t generic;  // borrow, repay, withdraw_blue, supply, supply_collateral
+        create_market_t create_market;
+        set_authorization_with_sig_t set_authorization_with_sig;
+        reallocate_t reallocate;
+    } tx;
 
     // For both parsing and display.
     selector_t selectorIndex;

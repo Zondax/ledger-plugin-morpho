@@ -2,175 +2,32 @@
 
 uint8_t bytes_missing = 0;
 
+/**
+ * @brief Copy the parameter to the destination
+ *
+ * @param dst
+ * @param dst_len
+ * @param max_len
+ * @param src
+ */
 static void copy_text(uint8_t *dst, uint16_t dst_len, uint16_t max_len, const uint8_t *src) {
     size_t len = MIN(dst_len, max_len);
     memcpy(dst, src, len);
 }
 
-static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *context) {
-    uint16_t containers = 0;  // group of 32 bytes needed to hold name
-    uint16_t tmp_offset = 0;
-
-    if (context->go_to_offset) {
-        if (msg->parameterOffset != context->offset) {
-            return;
-        }
-        context->go_to_offset = false;
-    }
+static void handle_deposit(ethPluginProvideParameter_t *msg, context_t *context) {
     switch (context->next_param) {
-        case OFFSET:
-            // save temporarily the offset to check on the next parameter we are indeed in the right
-            // offset
-            if (!U2BE_from_parameter(msg->parameter, &context->offsets_start)) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            context->next_param = N_CALL;
+        case AMOUNT:
+            copy_parameter(context->tx.deposit.assets.value,
+                           msg->parameter,
+                           sizeof(context->tx.deposit.assets.value));
+            context->next_param = RECEIVER;
             break;
-        case N_CALL:
-            if (msg->parameterOffset != context->offsets_start + SELECTOR_SIZE) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-
-            if (!U2BE_from_parameter(msg->parameter, &context->n_calls) ||
-                context->n_calls > CALL_LENGTH || context->n_calls == 0) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-            }
-            context->next_param = OFFSETS;
-            break;
-        case OFFSETS:
-            if (context->id >= OFFSET_LENGTH) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            if (!U2BE_from_parameter(msg->parameter, &tmp_offset)) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-
-            // save offsets start point
-            if (context->id == 0) {
-                context->offsets_start = msg->parameterOffset;
-            }
-            // save offset and if not last one save next
-            context->offsets[context->id] = tmp_offset;
-            context->id++;
-            context->next_param = OFFSETS;
-            if (context->id == context->n_calls) {
-                context->id = 0;
-                context->offset = context->offsets_start + context->offsets[0];
-                context->go_to_offset = true;
-                context->next_param = CALL_LEN;
-            }
-            break;
-        case CALL_LEN:
-            if (context->id >= OFFSET_LENGTH) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            if (!U2BE_from_parameter(msg->parameter, &context->call_len[context->id])) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            context->next_param = CALL;
-            break;
-        case CALL:
-            if (context->id >= OFFSET_LENGTH) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            // Name has less then 32
-            if (context->call_len[context->id] <= PARAMETER_LENGTH) {
-                copy_text(context->call[context->id].value,
-                          sizeof(context->call[context->id].value),
-                          PARAMETER_LENGTH,
-                          msg->parameter);
-                context->call[context->id].ellipsis = false;
-                if (context->id == context->n_calls - 1) {
-                    context->id = 0;
-                    context->next_param = NONE;
-                } else {
-                    context->id++;
-                    context->offset = context->offsets_start + context->offsets[context->id];
-                    context->go_to_offset = true;
-                    context->next_param = CALL_LEN;
-                }
-            } else {  // Name has more then 32 bytes
-                containers = context->call_len[context->id] / PARAMETER_LENGTH;
-                bytes_missing = context->call_len[context->id] % PARAMETER_LENGTH;
-                context->call[context->id].ellipsis = true;
-                // copy first 16 bytes
-                copy_text(context->call[context->id].value,
-                          sizeof(context->call[context->id].value),
-                          HALF_PARAMETER_LENGTH,
-                          msg->parameter);
-
-                if (bytes_missing < HALF_PARAMETER_LENGTH) {
-                    if (containers < 2) {  // only one container we still need bytes from this one
-                                           // to complete the last 16. then go to last container
-                        copy_text(context->call[context->id].value + HALF_PARAMETER_LENGTH,
-                                  sizeof(context->call[context->id].value) - HALF_PARAMETER_LENGTH,
-                                  HALF_PARAMETER_LENGTH - bytes_missing,
-                                  msg->parameter + HALF_PARAMETER_LENGTH + bytes_missing);
-
-                        context->offset = msg->parameterOffset + PARAMETER_LENGTH;
-                        context->go_to_offset = true;
-                        context->next_param = CALL_2;
-                    } else {  // more then 1 container go to second-last and get missing bytes to
-                              // complete the last 16
-                        context->offset =
-                            msg->parameterOffset + (containers - 1) * PARAMETER_LENGTH;
-                        context->go_to_offset = true;
-                        context->next_param = CALL_1;
-                    }
-                } else {  // last container has the last 16 bytes we need
-                    context->offset = msg->parameterOffset + containers * PARAMETER_LENGTH;
-                    context->go_to_offset = true;
-                    context->next_param = CALL_2;
-                }
-            }
-            break;
-        case CALL_1:  // second last container
-            if (context->id >= OFFSET_LENGTH) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            copy_text(context->call[context->id].value + HALF_PARAMETER_LENGTH,
-                      sizeof(context->call[context->id].value) - HALF_PARAMETER_LENGTH,
-                      HALF_PARAMETER_LENGTH - bytes_missing,
-                      msg->parameter + HALF_PARAMETER_LENGTH + bytes_missing);
-            context->next_param = CALL_2;
-            break;
-        case CALL_2:  // last container
-            if (context->id >= OFFSET_LENGTH) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            if (bytes_missing <= HALF_PARAMETER_LENGTH) {  // copy missing bytes
-                copy_text(context->call[context->id].value + HALF_PARAMETER_LENGTH +
-                              (HALF_PARAMETER_LENGTH - bytes_missing),
-                          sizeof(context->call[context->id].value) - HALF_PARAMETER_LENGTH +
-                              (HALF_PARAMETER_LENGTH - bytes_missing),
-                          bytes_missing,
-                          msg->parameter);
-            } else {  // last container has 16 or more bytes, move the need offset to copy the last
-                      // 16 bytes
-                copy_text(context->call[context->id].value + HALF_PARAMETER_LENGTH,
-                          sizeof(context->call[context->id].value) - HALF_PARAMETER_LENGTH,
-                          HALF_PARAMETER_LENGTH,
-                          msg->parameter + (bytes_missing - HALF_PARAMETER_LENGTH));
-            }
-
-            if (context->id == context->n_calls - 1) {
-                context->id = 0;
-                context->next_param = NONE;
-            } else {
-                context->id++;
-                context->offset = context->offsets_start + context->offsets[context->id];
-                context->go_to_offset = true;
-                context->next_param = CALL_LEN;
-            }
+        case RECEIVER:
+            copy_address(context->tx.deposit.receiver.value,
+                         msg->parameter,
+                         sizeof(context->tx.deposit.receiver.value));
+            context->next_param = NONE;
             break;
         case NONE:
             break;
@@ -181,6 +38,412 @@ static void handle_multicall(ethPluginProvideParameter_t *msg, context_t *contex
     }
 }
 
+static void handle_approve(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case SPENDER:
+            copy_address(context->tx.approve.spender.value,
+                         msg->parameter,
+                         sizeof(context->tx.approve.spender.value));
+
+            context->next_param = SHARES;
+            break;
+        case SHARES:
+            copy_parameter(context->tx.approve.shares.value,
+                           msg->parameter,
+                           sizeof(context->tx.approve.shares.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_withdraw(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case AMOUNT:
+            copy_parameter(context->tx.withdraw.assets.value,
+                           msg->parameter,
+                           sizeof(context->tx.withdraw.assets.value));
+            context->next_param = RECEIVER;
+            break;
+        case RECEIVER:
+            copy_address(context->tx.withdraw.receiver.value,
+                         msg->parameter,
+                         sizeof(context->tx.withdraw.receiver.value));
+            context->next_param = OWNER;
+            break;
+        case OWNER:
+            copy_address(context->tx.withdraw.owner.value,
+                         msg->parameter,
+                         sizeof(context->tx.withdraw.owner.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_redeem(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case SHARES:
+            copy_parameter(context->tx.redeem.shares.value,
+                           msg->parameter,
+                           sizeof(context->tx.redeem.shares.value));
+            context->next_param = RECEIVER;
+            break;
+        case RECEIVER:
+            copy_address(context->tx.redeem.receiver.value,
+                         msg->parameter,
+                         sizeof(context->tx.redeem.receiver.value));
+            context->next_param = OWNER;
+            break;
+        case OWNER:
+            copy_address(context->tx.redeem.owner.value,
+                         msg->parameter,
+                         sizeof(context->tx.redeem.owner.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_mint(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case SHARES:
+            copy_parameter(context->tx.mint.shares.value,
+                           msg->parameter,
+                           sizeof(context->tx.mint.shares.value));
+            context->next_param = RECEIVER;
+            break;
+        case RECEIVER:
+            copy_address(context->tx.mint.receiver.value,
+                         msg->parameter,
+                         sizeof(context->tx.mint.receiver.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_set_authorization(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case ADDRESS:
+            copy_address(context->tx.set_authorization.address.value,
+                         msg->parameter,
+                         sizeof(context->tx.set_authorization.address.value));
+            context->next_param = IS_AUTHORIZED;
+            break;
+        case IS_AUTHORIZED:
+            if (!U2BE_from_parameter(msg->parameter, &context->tx.set_authorization.isAuthorized)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+            }
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_flash_loan(ethPluginProvideParameter_t *msg, context_t *context) {
+    uint16_t containers = 0;  // group of 32 bytes needed to hold data
+
+    if (context->go_to_offset) {
+        if (msg->parameterOffset != context->offset) {
+            return;
+        }
+        context->go_to_offset = false;
+    }
+    switch (context->next_param) {
+        case TOKEN:
+            copy_address(context->tx.flash_loan.token.value,
+                         msg->parameter,
+                         sizeof(context->tx.flash_loan.token.value));
+            context->next_param = ASSETS;
+            break;
+        case ASSETS:
+            copy_parameter(context->tx.flash_loan.assets.value,
+                           msg->parameter,
+                           sizeof(context->tx.flash_loan.assets.value));
+            context->next_param = DATA_OFFSET;
+            break;
+        case DATA_OFFSET:
+            if (!U2BE_from_parameter(msg->parameter, &context->tx.flash_loan.data_offset)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+            context->next_param = DATA_SIZE;
+            break;
+        case DATA_SIZE:
+            if (msg->parameterOffset != context->tx.flash_loan.data_offset + SELECTOR_SIZE) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+
+            if (!U2BE_from_parameter(msg->parameter, &context->tx.flash_loan.data_size)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+            context->next_param = DATA;
+            break;
+        case DATA:
+            // Name has less then 32
+            if (context->tx.flash_loan.data_size <= PARAMETER_LENGTH) {
+                copy_text(context->tx.flash_loan.data.value,
+                          context->tx.flash_loan.data_size,
+                          PARAMETER_LENGTH,
+                          msg->parameter);
+                context->tx.flash_loan.data.ellipsis = false;
+                context->next_param = NONE;
+            } else {  // Name has more then 32 bytes
+                containers = context->tx.flash_loan.data_size / PARAMETER_LENGTH;
+                bytes_missing = context->tx.flash_loan.data_size % PARAMETER_LENGTH;
+                context->tx.flash_loan.data.ellipsis = true;
+
+                // copy first 16 bytes
+                copy_text(context->tx.flash_loan.data.value,
+                          context->tx.flash_loan.data_size,
+                          HALF_PARAMETER_LENGTH,
+                          msg->parameter);
+
+                if (bytes_missing < HALF_PARAMETER_LENGTH) {
+                    if (containers < 2) {  // only one container we still need bytes from this one
+                                           // to complete the last 16. then go to last container
+                        copy_text(context->tx.flash_loan.data.value + HALF_PARAMETER_LENGTH,
+                                  context->tx.flash_loan.data_size - HALF_PARAMETER_LENGTH,
+                                  HALF_PARAMETER_LENGTH - bytes_missing,
+                                  msg->parameter + HALF_PARAMETER_LENGTH + bytes_missing);
+
+                        context->offset = msg->parameterOffset + PARAMETER_LENGTH;
+                        context->go_to_offset = true;
+                        context->next_param = DATA_CONTAINER_2;
+                    } else {  // more then 1 container go to second-last and get missing bytes to
+                              // complete the last 16
+                        context->offset =
+                            msg->parameterOffset + (containers - 1) * PARAMETER_LENGTH;
+                        context->go_to_offset = true;
+                        context->next_param = DATA_CONTAINER_1;
+                    }
+                } else {  // last container has the last 16 bytes we need
+                    context->offset = msg->parameterOffset + containers * PARAMETER_LENGTH;
+                    context->go_to_offset = true;
+                    context->next_param = DATA_CONTAINER_2;
+                }
+            }
+            break;
+        case DATA_CONTAINER_1:  // second last container
+            copy_text(context->tx.flash_loan.data.value + HALF_PARAMETER_LENGTH,
+                      context->tx.flash_loan.data_size - HALF_PARAMETER_LENGTH,
+                      HALF_PARAMETER_LENGTH - bytes_missing,
+                      msg->parameter + HALF_PARAMETER_LENGTH + bytes_missing);
+            context->next_param = DATA_CONTAINER_2;
+            break;
+        case DATA_CONTAINER_2:                             // last container
+            if (bytes_missing <= HALF_PARAMETER_LENGTH) {  // copy missing bytes
+                copy_text(context->tx.flash_loan.data.value + HALF_PARAMETER_LENGTH +
+                              (HALF_PARAMETER_LENGTH - bytes_missing),
+                          context->tx.flash_loan.data_size - HALF_PARAMETER_LENGTH +
+                              (HALF_PARAMETER_LENGTH - bytes_missing),
+                          bytes_missing,
+                          msg->parameter);
+            } else {  // last container has 16 or more bytes, move the need offset to copy the last
+                      // 16 bytes
+                copy_text(context->tx.flash_loan.data.value + HALF_PARAMETER_LENGTH,
+                          context->tx.flash_loan.data_size - HALF_PARAMETER_LENGTH,
+                          HALF_PARAMETER_LENGTH,
+                          msg->parameter + (bytes_missing - HALF_PARAMETER_LENGTH));
+            }
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_generic(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case TUPPLE_1:
+            context->next_param = TUPPLE_2;
+            break;
+        case TUPPLE_2:
+            context->next_param = TUPPLE_3;
+            break;
+        case TUPPLE_3:
+            context->next_param = TUPPLE_4;
+            break;
+        case TUPPLE_4:
+            context->next_param = TUPPLE_5;
+            break;
+        case TUPPLE_5:
+            context->next_param = ASSETS;
+            break;
+        case ASSETS:
+            copy_parameter(context->tx.generic.assets.value,
+                           msg->parameter,
+                           sizeof(context->tx.generic.assets.value));
+            context->next_param = SHARES;
+            break;
+        case SHARES:
+            copy_parameter(context->tx.generic.shares.value,
+                           msg->parameter,
+                           sizeof(context->tx.generic.shares.value));
+            context->next_param = SENDER;
+            break;
+        case SENDER:
+            copy_address(context->tx.generic.sender.value,
+                         msg->parameter,
+                         sizeof(context->tx.generic.sender.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_generic_2(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case TUPPLE_1:
+            context->next_param = TUPPLE_2;
+            break;
+        case TUPPLE_2:
+            context->next_param = TUPPLE_3;
+            break;
+        case TUPPLE_3:
+            context->next_param = TUPPLE_4;
+            break;
+        case TUPPLE_4:
+            context->next_param = TUPPLE_5;
+            break;
+        case TUPPLE_5:
+            context->next_param = ASSETS;
+            break;
+        case ASSETS:
+            copy_parameter(context->tx.generic.assets.value,
+                           msg->parameter,
+                           sizeof(context->tx.generic.assets.value));
+            context->next_param = SENDER;
+            break;
+        case SENDER:
+            copy_address(context->tx.generic.sender.value,
+                         msg->parameter,
+                         sizeof(context->tx.generic.sender.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_create_market(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case LOAN_TOKEN:
+            copy_address(context->tx.create_market.loan_token.value,
+                         msg->parameter,
+                         sizeof(context->tx.create_market.loan_token.value));
+            context->next_param = COLLATERAL_TOKEN;
+            break;
+        case COLLATERAL_TOKEN:
+            copy_address(context->tx.create_market.collateral_token.value,
+                         msg->parameter,
+                         sizeof(context->tx.create_market.collateral_token.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_set_authorization_with_sig(ethPluginProvideParameter_t *msg,
+                                              context_t *context) {
+    switch (context->next_param) {
+        case AUTHORIZER:
+            copy_address(context->tx.set_authorization_with_sig.authorizer.value,
+                         msg->parameter,
+                         sizeof(context->tx.set_authorization_with_sig.authorizer.value));
+            context->next_param = AUTHORIZED;
+            break;
+        case AUTHORIZED:
+            copy_address(context->tx.set_authorization_with_sig.authorized.value,
+                         msg->parameter,
+                         sizeof(context->tx.set_authorization_with_sig.authorized.value));
+            context->next_param = IS_AUTHORIZED;
+            break;
+        case IS_AUTHORIZED:
+            if (!U2BE_from_parameter(msg->parameter,
+                                     &context->tx.set_authorization_with_sig.isAuthorized)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+            }
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+static void handle_reallocate(ethPluginProvideParameter_t *msg, context_t *context) {
+    switch (context->next_param) {
+        case VAULT:
+            copy_address(context->tx.reallocate.vault.value,
+                         msg->parameter,
+                         sizeof(context->tx.reallocate.vault.value));
+            context->next_param = NONE;
+            break;
+        case NONE:
+            break;
+        default:
+            PRINTF("Param not supported: %d\n", context->next_param);
+            msg->result = ETH_PLUGIN_RESULT_ERROR;
+            break;
+    }
+}
+
+/**
+ * @brief Function to parse the important parameters of the call. Calls a specific function for each
+ * method
+ *
+ * @param msg msg context
+ */
 void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
     context_t *context = (context_t *) msg->pluginContext;
     // We use `%.*H`: it's a utility function to print bytes. You first give
@@ -194,8 +457,45 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
     msg->result = ETH_PLUGIN_RESULT_OK;
 
     switch (context->selectorIndex) {
-        case MULTICALL:
-            handle_multicall(msg, context);
+        case DEPOSIT:
+            handle_deposit(msg, context);
+            break;
+        case APPROVE:
+            handle_approve(msg, context);
+            break;
+        case REDEEM:
+            handle_redeem(msg, context);
+            break;
+        case WITHDRAW:
+            handle_withdraw(msg, context);
+            break;
+        case MINT:
+            handle_mint(msg, context);
+            break;
+        case SET_AUTHORIZATION:
+            handle_set_authorization(msg, context);
+            break;
+        case FLASH_LOAN:
+            handle_flash_loan(msg, context);
+            break;
+        case BORROW:
+        case REPAY:
+        case WITHDRAW_BLUE:
+        case SUPPLY:
+            handle_generic(msg, context);
+            break;
+        case SUPPLY_COLLATERAL:
+        case WITHDRAW_COLLATERAL:
+            handle_generic_2(msg, context);
+            break;
+        case CREATE_MARKET:
+            handle_create_market(msg, context);
+            break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            handle_set_authorization_with_sig(msg, context);
+            break;
+        case REALLOCATE:
+            handle_reallocate(msg, context);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);

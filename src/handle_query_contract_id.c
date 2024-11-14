@@ -10,8 +10,51 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
     strlcpy(msg->name, APPNAME, msg->nameLength);
 
     switch (context->selectorIndex) {
-        case MULTICALL:
-            strlcpy(msg->version, "Multicall", msg->versionLength);
+        case DEPOSIT:
+            strlcpy(msg->version, "Deposit", msg->versionLength);
+            break;
+        case MINT:
+            strlcpy(msg->version, "Mint", msg->versionLength);
+            break;
+        case REDEEM:
+            strlcpy(msg->version, "Redeem", msg->versionLength);
+            break;
+        case WITHDRAW:
+        case WITHDRAW_BLUE:
+            strlcpy(msg->version, "Withdraw", msg->versionLength);
+            break;
+        case APPROVE:
+            strlcpy(msg->version, "Approve", msg->versionLength);
+            break;
+        case SET_AUTHORIZATION:
+            strlcpy(msg->version, "Set Authorization", msg->versionLength);
+            break;
+        case FLASH_LOAN:
+            strlcpy(msg->version, "Flash Loan", msg->versionLength);
+            break;
+        case BORROW:
+            strlcpy(msg->version, "Borrow", msg->versionLength);
+            break;
+        case REPAY:
+            strlcpy(msg->version, "Repay", msg->versionLength);
+            break;
+        case SUPPLY:
+            strlcpy(msg->version, "Supply", msg->versionLength);
+            break;
+        case SUPPLY_COLLATERAL:
+            strlcpy(msg->version, "Supply Collateral", msg->versionLength);
+            break;
+        case WITHDRAW_COLLATERAL:
+            strlcpy(msg->version, "Withdraw Collateral", msg->versionLength);
+            break;
+        case CREATE_MARKET:
+            strlcpy(msg->version, "Create Market", msg->versionLength);
+            break;
+        case SET_AUTHORIZATION_WITH_SIG:
+            strlcpy(msg->version, "Set Auth With Sig", msg->versionLength);
+            break;
+        case REALLOCATE:
+            strlcpy(msg->version, "Reallocate To", msg->versionLength);
             break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
