@@ -1,5 +1,6 @@
 #include "plugin.h"
 
+#define ELLIPSIS_LENGTH 3
 /**
  * @brief Convert byte array into a hexadecimal string
  *
@@ -17,10 +18,10 @@ static bool array_to_hexstr(char *dst,
                             uint16_t count,
                             bool addEllipsis) {
     memset(dst, 0, dstLen);
-    if (dstLen < (count * 2 + 1)) {
+    size_t requiredLen = count * 2 + 1 + (addEllipsis ? ELLIPSIS_LENGTH : 0);
+    if (dstLen < requiredLen) {
         return false;
     }
-
     const char hexchars[] = "0123456789abcdef";
     int halfCount = count / 2;  // Calculate the middle point
 
@@ -91,7 +92,7 @@ static bool set_bool_ui(ethQueryContractUI_t *msg, uint16_t val, const char *tit
  * @return false
  */
 static bool set_address_ui(ethQueryContractUI_t *msg, address_t *value) {
-    if (msg->msgLength < 42) {
+    if (msg->msgLength <= ADDRESS_LENGTH * 2 + 2) {
         return false;
     }
     // Prefix the address with `0x`.

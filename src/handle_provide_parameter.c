@@ -263,7 +263,7 @@ static void handle_flash_loan(ethPluginProvideParameter_t *msg, context_t *conte
             if (bytes_missing <= HALF_PARAMETER_LENGTH) {  // copy missing bytes
                 copy_text(context->tx.flash_loan.data.value + HALF_PARAMETER_LENGTH +
                               (HALF_PARAMETER_LENGTH - bytes_missing),
-                          context->tx.flash_loan.data_size - HALF_PARAMETER_LENGTH +
+                          context->tx.flash_loan.data_size - HALF_PARAMETER_LENGTH -
                               (HALF_PARAMETER_LENGTH - bytes_missing),
                           bytes_missing,
                           msg->parameter);
