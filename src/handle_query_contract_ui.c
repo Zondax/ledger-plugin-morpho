@@ -114,11 +114,13 @@ static bool set_address_ui(ethQueryContractUI_t *msg, address_t *value) {
 static bool handle_deposit(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
-            strlcpy(msg->title, "Assets", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.deposit.assets.value,
-                                      sizeof(ctx->tx.deposit.assets.value),
-                                      msg->msg,
-                                      msg->msgLength);
+            strlcpy(msg->title, "Amount", msg->titleLength);
+            return amountToString(ctx->tx.deposit.assets.value,
+                                  sizeof(ctx->tx.deposit.assets.value),
+                                  WEI_TO_ETHER,
+                                  "WETH",
+                                  msg->msg,
+                                  msg->msgLength);
         case 1:
             strlcpy(msg->title, "Receiver", msg->titleLength);
             return set_address_ui(msg, &ctx->tx.deposit.receiver);
@@ -168,11 +170,17 @@ static bool handle_redeem(ethQueryContractUI_t *msg, context_t *ctx, uint8_t scr
 static bool handle_withdraw(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
-            strlcpy(msg->title, "Assets", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.withdraw.assets.value,
-                                      sizeof(ctx->tx.withdraw.assets.value),
-                                      msg->msg,
-                                      msg->msgLength);
+            strlcpy(msg->title, "Amount", msg->titleLength);
+
+            const uint8_t *eth_amount = ctx->tx.withdraw.assets.value;
+            uint8_t eth_amount_size = sizeof(ctx->tx.withdraw.assets.value);
+
+            return amountToString(eth_amount,
+                                  eth_amount_size,
+                                  WEI_TO_ETHER,
+                                  "WETH",
+                                  msg->msg,
+                                  msg->msgLength);
         case 1:
             strlcpy(msg->title, "Receiver", msg->titleLength);
             return set_address_ui(msg, &ctx->tx.withdraw.receiver);
@@ -224,11 +232,13 @@ static bool handle_flash_loan(ethQueryContractUI_t *msg, context_t *ctx, uint8_t
             strlcpy(msg->title, "Token", msg->titleLength);
             return set_address_ui(msg, &ctx->tx.flash_loan.token);
         case 1:
-            strlcpy(msg->title, "Assets", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.flash_loan.assets.value,
-                                      sizeof(ctx->tx.flash_loan.assets.value),
-                                      msg->msg,
-                                      msg->msgLength);
+            strlcpy(msg->title, "Amount", msg->titleLength);
+            return amountToString(ctx->tx.flash_loan.assets.value,
+                                  sizeof(ctx->tx.flash_loan.assets.value),
+                                  WEI_TO_ETHER,
+                                  "WETH",
+                                  msg->msg,
+                                  msg->msgLength);
         case 2:
             return set_bytes32_ui(msg, &ctx->tx.flash_loan.data, "Data");
         default:
@@ -240,11 +250,13 @@ static bool handle_flash_loan(ethQueryContractUI_t *msg, context_t *ctx, uint8_t
 static bool handle_generic(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
-            strlcpy(msg->title, "Assets", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.generic.assets.value,
-                                      sizeof(ctx->tx.generic.assets.value),
-                                      msg->msg,
-                                      msg->msgLength);
+            strlcpy(msg->title, "Amount", msg->titleLength);
+            return amountToString(ctx->tx.generic.assets.value,
+                                  sizeof(ctx->tx.generic.assets.value),
+                                  WEI_TO_ETHER,
+                                  "WETH",
+                                  msg->msg,
+                                  msg->msgLength);
         case 1:
             strlcpy(msg->title, "Shares", msg->titleLength);
             return uint256_to_decimal(ctx->tx.generic.shares.value,
@@ -263,11 +275,13 @@ static bool handle_generic(ethQueryContractUI_t *msg, context_t *ctx, uint8_t sc
 static bool handle_generic_2(ethQueryContractUI_t *msg, context_t *ctx, uint8_t screenIndex) {
     switch (screenIndex) {
         case 0:
-            strlcpy(msg->title, "Assets", msg->titleLength);
-            return uint256_to_decimal(ctx->tx.generic.assets.value,
-                                      sizeof(ctx->tx.generic.assets.value),
-                                      msg->msg,
-                                      msg->msgLength);
+            strlcpy(msg->title, "Amount", msg->titleLength);
+            return amountToString(ctx->tx.generic.assets.value,
+                                  sizeof(ctx->tx.generic.assets.value),
+                                  WEI_TO_ETHER,
+                                  "WETH",
+                                  msg->msg,
+                                  msg->msgLength);
         case 1:
             strlcpy(msg->title, "onBehalf", msg->titleLength);
             return set_address_ui(msg, &ctx->tx.generic.sender);
