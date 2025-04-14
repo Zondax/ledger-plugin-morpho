@@ -141,6 +141,8 @@ typedef struct {
     bytes32_t assets;
     bytes32_t shares;
     address_t sender;
+    address_t loan_token;
+    address_t collateral_token;
 } morpho_blue_generic_t;
 
 typedef struct {
@@ -185,6 +187,12 @@ typedef struct context_s {
     // For both parsing and display.
     selector_t selectorIndex;
 } context_t;
+
+typedef struct token_info_t {
+    const uint8_t address[ADDRESS_LENGTH];
+    const char ticker[MAX_TICKER_LEN];
+    const uint8_t decimals;
+} token_info_t;
 
 // Check if the context structure will fit in the RAM section ETH will prepare for us
 // Do not remove!
