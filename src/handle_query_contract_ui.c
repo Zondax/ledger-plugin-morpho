@@ -118,7 +118,9 @@ static bool set_address_ui(ethQueryContractUI_t *msg, address_t *value) {
  * @param token_ticker
  * @param token_decimals
  */
-void assign_token_info(char token_ticker[MAX_TICKER_LEN], uint8_t *token_decimals, address_t *address) {
+void assign_token_info(char token_ticker[MAX_TICKER_LEN],
+                       uint8_t *token_decimals,
+                       address_t *address) {
     size_t i = 0;
     while (i < NUM_TOKENS_SUPPORTED &&
            memcmp(tokens_list[i].address, address->value, ADDRESS_LENGTH))
@@ -135,15 +137,18 @@ void assign_token_info(char token_ticker[MAX_TICKER_LEN], uint8_t *token_decimal
 
 /**
  * @brief Assign vault info using plugin shared read only context
- * 
- * @param msg 
- * @param token_ticker 
- * @param token_decimals 
+ *
+ * @param msg
+ * @param token_ticker
+ * @param token_decimals
  */
-void assign_vault_info(ethQueryContractUI_t *msg, char token_ticker[MAX_TICKER_LEN], uint8_t *token_decimals) {
+void assign_vault_info(ethQueryContractUI_t *msg,
+                       char token_ticker[MAX_TICKER_LEN],
+                       uint8_t *token_decimals) {
     size_t i = 0;
-    while (i < NUM_VAULTS_SUPPORTED &&
-           memcmp(vaults_list[i].address, msg->pluginSharedRO->txContent->destination, ADDRESS_LENGTH))
+    while (
+        i < NUM_VAULTS_SUPPORTED &&
+        memcmp(vaults_list[i].address, msg->pluginSharedRO->txContent->destination, ADDRESS_LENGTH))
         i++;
     if (i == NUM_VAULTS_SUPPORTED) {
         PRINTF("ADDRESS NOT MATCHED\n");
