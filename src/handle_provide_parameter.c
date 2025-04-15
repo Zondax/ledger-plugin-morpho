@@ -287,7 +287,10 @@ static void handle_flash_loan(ethPluginProvideParameter_t *msg, context_t *conte
 
 static void handle_generic(ethPluginProvideParameter_t *msg, context_t *context) {
     switch (context->next_param) {
-        case TUPPLE_1:
+        case LOAN_TOKEN:
+            copy_address(context->tx.generic.loan_token.value,
+                         msg->parameter,
+                         sizeof(context->tx.generic.loan_token.value));
             context->next_param = TUPPLE_2;
             break;
         case TUPPLE_2:
@@ -332,9 +335,12 @@ static void handle_generic(ethPluginProvideParameter_t *msg, context_t *context)
 static void handle_generic_2(ethPluginProvideParameter_t *msg, context_t *context) {
     switch (context->next_param) {
         case TUPPLE_1:
-            context->next_param = TUPPLE_2;
+            context->next_param = COLLATERAL_TOKEN;
             break;
-        case TUPPLE_2:
+        case COLLATERAL_TOKEN:
+            copy_address(context->tx.generic.collateral_token.value,
+                         msg->parameter,
+                         sizeof(context->tx.generic.collateral_token.value));
             context->next_param = TUPPLE_3;
             break;
         case TUPPLE_3:
